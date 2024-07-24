@@ -1,0 +1,122 @@
+/*
+Chat GPT code for motor controller UNO
+*/
+
+#include <SPI.h>
+#include <mcp_can.h>
+
+#define CAN0_INT 2 // Set INT pin for CAN shield to pin 2
+MCP_CAN CAN0(10);  // Set CS pin for CAN shield to pin 10
+
+// Define the pin numbers
+const int pin1 = 1;
+const int pin2 = 2;
+const int pin3 = 3;
+const int pin4 = 4;
+const int pin5 = 5;
+const int pin6 = 6;
+const int inputPin = 7;
+
+void setup() {
+  // Initialize serial communication
+  Serial.begin(115200);
+  
+  // Initialize CAN bus communication
+  if (CAN0.begin(MCP_ANY, CAN_500KBPS, MCP_8MHZ) == CAN_OK) {
+    Serial.println("CAN BUS Shield init OK!");
+  } else {
+    Serial.println("CAN BUS Shield init FAIL!");
+    while (1);
+  }
+
+  // Set CAN interrupt pin
+  pinMode(CAN0_INT, INPUT);
+
+  // Set pin modes for digital pins
+  pinMode(pin1, OUTPUT);
+  pinMode(pin2, OUTPUT);
+  pinMode(pin3, OUTPUT);
+  pinMode(pin4, OUTPUT);
+  pinMode(pin5, OUTPUT);
+  pinMode(pin6, OUTPUT);
+  pinMode(inputPin, INPUT);
+
+  // Enable CAN bus communication
+  CAN0.setMode(MCP_NORMAL);
+}
+
+void loop() {
+  unsigned long canId;
+  uint8_t len = 0;
+  uint8_t buf[8];
+
+  // Check for CAN bus message
+  if (!digitalRead(CAN0_INT)) {
+    CAN0.readMsgBuf(&canId, &len, buf);
+    handleCANMessage(canId, buf, len);
+  }
+
+  // Check input pin status
+  if (digitalRead(inputPin) == HIGH) {
+    sendCANMessage();
+  }
+}
+
+void handleCANMessage(unsigned long canId, uint8_t *buf, uint8_t len) {
+  // Process the received CAN message
+  switch (canId) {
+    case 0x501:
+      if (buf[0] == 0x00) {
+        digitalWrite(pin1, HIGH);
+      } else if (buf[0] == 0x01) {
+        digitalWrite(pin1, LOW);
+      }
+      break;
+
+    case 0x502:
+      if (buf[0] == 0x10) {
+        digitalWrite(pin2, HIGH);
+      } else if (buf[0] == 0x20) {
+        digitalWrite(pin2, LOW);
+      }
+      break;
+
+    case 0x503:
+      if (buf[0] == 0x10) {
+        digitalWrite(pin3, HIGH);
+      } else if (buf[0] == 0x20) {
+        digitalWrite(pin3, LOW);
+      }
+      break;
+
+    case 0x510:
+      if (buf[0] == 0x10) {
+        digitalWrite(pin4, HIGH);
+      } else if (buf[0] == 0x20) {
+        digitalWrite(pin4, LOW);
+      }
+      break;
+
+    case 0x511:
+      if (buf[0] == 0x10) {
+        digitalWrite(pin5, HIGH);
+      } else if (buf[0] == 0x20) {
+        digitalWrite(pin5, LOW);
+      }
+      break;
+
+    case 0x512:
+      if (buf[0] == 0x10) {
+        digitalWrite(pin6, HIGH);
+      } else if (buf[0] == 0x20) {
+        digitalWrite(pin6, LOW);
+      }
+      break;
+  }
+}
+
+void sendCANMessage() {
+  // Send CAN message with ID 0x30
+  unsigned char msg[1] = {0x30};
+  CAN0.sendMsgBuf(0x30, 0, 1, msg);
+}
