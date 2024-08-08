@@ -11,7 +11,7 @@
 const int SPI_CS_PIN = 9;
 mcp2515_can CAN(SPI_CS_PIN); // Set CS pin
 
-const unsigned char expectedBuf[8] = {6, 4, 6, 4, 0, 0, 0, 9};
+const unsigned char expectedBuf_Reg[8] = {6, 4, 6, 4, 0, 0, 0, 9};
 
 void setup() {
     SERIAL.begin(115200);
@@ -48,7 +48,7 @@ void loop() {
         bool match = true;
         if (len == 8) {
             for (int i = 0; i < 8; i++) {
-                if (buf[i] != expectedBuf[i]) {
+                if (buf[i] != expectedBuf_Reg[i]) {
                     match = false;
                     break;
                 }
@@ -56,12 +56,12 @@ void loop() {
             if (match) {
                 // Blink the LED if the message matches
                 digitalWrite(10, HIGH);  // turn the LED on (HIGH is the voltage level)
-                delay(250);                      // wait for a second
+                delay(200);              // wait for 200ms
                 digitalWrite(10, LOW);   // turn the LED off by making the voltage LOW
-                delay(250); 
+                delay(200); 
             }
         }
     }
-    delay(100); // Add a delay to avoid flooding the serial output
+
 }
 
